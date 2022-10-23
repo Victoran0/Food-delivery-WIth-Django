@@ -1,0 +1,33 @@
+{% extends 'customer/base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row jusitfy-content-center mt-5">
+        <div class="col-md-6 col-sm-12 text-center">
+            <h1>What's On Our Menu?</h1>
+        </div>
+    </div>
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-8 col-sm-12 text-center">
+
+            <!-- Search Form -->
+            <form action="{% url 'menu-search' %}" method="GET">
+                <div class="md-form mt-0 active-cyan-2">
+                    <input type="text" placeholder="Search Our Menu" aria-label="Search" value="{{request.GET.q}}" name="q" class="form-control">
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="row justify-content-center mt-5">
+        {% for item in menu_items %}
+        <div class="col-md-4 col-sm-12 text-center mb-5">
+            <img src="{{item.image.url}}" alt="Menu Item" width="350" height="300" class="rounded">
+            <h5 class="mt-3">{{item.name}}</h5>
+            <p>Price: {{item.price}} </p>
+            <p>{{item.description}} </p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock content %}

@@ -1,0 +1,84 @@
+{% extends 'customer/base.html' %}
+
+{% block content %}
+<div class="container mb-5">
+    <div class="row justify-content-center mt-1">
+        <div class="col-md-5 col-sm-12 p-4 text-center">
+            <h1>Order Submitted!</h1>
+            <p>You should receive a confirmation email soon.</p>
+            <a href="{% url 'index' %}">Go to the homepage</a>
+        </div>
+    </div>
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-5 col-sm-12 text-center">
+            <h3 class="pb-3">Order Summary:</h3>
+                {% for item in items %}
+                <p>{{item.name}} <span class="pl-3">{{item.price}} </span> </p>
+                {% endfor %}
+                <p class="font-weight bold pt-4">Total: {{price}} </p>
+        </div>
+    </div>
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6 text-center">
+            <h3>Pay Now or Pay With Cash On Delivery</h3>
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div id="paypal-button-container"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.paypal.com/sdk/js?client-id=API_KEY&currency=USD"></script>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i=0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURLComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+    // Render the paypal button into #paypal-button-container
+    paypal.Buttons({
+        // set up the transaction
+        createOrder: function(data, actions) {
+            return actions.order.create({
+                purchase_units: [{
+                    amount: {
+                        value: '{{price}}'
+                    }
+                }]
+            });
+        },
+        // Finalize the transaction
+        onApprove: function(data, actions) {
+            return actions.order.capture().then(function(details) {
+                // Make post request to pay confirmation
+                $.ajax({
+                    type: 'POST',
+                    url: "{% url 'order-confirmation' pk %}",
+                    beforeSend: function(request) {
+                        request.setRequestHeader("X-CSRFToken", csrftoken)
+                    },
+                    data: JSON.stringify({'isPaid': true}),
+                    success: function(data) {
+                        window.location.href = '/payment-confirmation/'
+                    }
+                })
+            });
+        }
+    }).render('#paypal-button-container');
+</script>
+
+{% endblock content %} 
